@@ -1,0 +1,364 @@
+#include "hsf.h"
+#include "airkissv2.h"
+#include "uart_protocal.h"
+
+//Support Airkiss 2.0, need to modify this gh_XXX to WeChat assigned.
+#define DEVICE_TYPE 	"gh_ba0c25259dca"
+#define DEVICE_ID		"accfxxxxxxxx"
+
+//__HF_MODULE_ID__ should modifed in makefile accourding to hardware module.
+int g_module_id = __HF_MODULE_ID__;
+
+#if (__HF_MODULE_ID__==HFM_LPB120)
+
+const int hf_gpio_fid_to_pid_map_table[HFM_MAX_FUNC_CODE]=
+{
+	HFM_NOPIN,	//HFGPIO_F_JTAG_TCK
+	HFM_NOPIN,	//HFGPIO_F_JTAG_TDO
+	HFM_NOPIN,	//HFGPIO_F_JTAG_TDI
+	HFM_NOPIN,	//HFGPIO_F_JTAG_TMS
+	HFM_NOPIN,		//HFGPIO_F_USBDP
+	HFM_NOPIN,		//HFGPIO_F_USBDM
+	HFM_GPIO20,	//HFGPIO_F_UART0_TX
+	HFM_NOPIN,	//HFGPIO_F_UART0_RTS
+	HFM_GPIO19,	//HFGPIO_F_UART0_RX
+	HFM_NOPIN,	//HFGPIO_F_UART0_CTS
+
+	HFM_NOPIN,	//HFGPIO_F_SPI_MISO
+	HFM_NOPIN,	//HFGPIO_F_SPI_CLK
+	HFM_NOPIN,	//HFGPIO_F_SPI_CS
+	HFM_NOPIN,	//HFGPIO_F_SPI_MOSI
+
+	HFM_GPIO5,	//HFGPIO_F_UART1_TX,
+	HFM_NOPIN,	//HFGPIO_F_UART1_RTS,
+	HFM_GPIO6,	//HFGPIO_F_UART1_RX,
+	HFM_NOPIN,	//HFGPIO_F_UART1_CTS,
+
+	HFM_GPIO15,	//HFGPIO_F_NLINK
+	HFM_GPIO18,	//HFGPIO_F_NREADY
+	HFM_GPIO2,	//HFGPIO_F_NRELOAD
+	HFM_NOPIN,		//HFGPIO_F_SLEEP_RQ
+	HFM_NOPIN,		//HFGPIO_F_SLEEP_ON
+
+	HFM_NOPIN,		//HFGPIO_F_WPS
+	HFM_NOPIN,		//HFGPIO_F_RESERVE1
+	HFM_NOPIN,		//HFGPIO_F_RESERVE2
+	HFM_NOPIN,		//HFGPIO_F_RESERVE3
+	HFM_NOPIN,		//HFGPIO_F_RESERVE4
+	HFM_NOPIN,		//HFGPIO_F_RESERVE5
+
+	HFM_GPIO8,	//HFGPIO_F_USER_DEFINE
+};
+
+#elif (__HF_MODULE_ID__==HFM_LPB125)
+
+const int hf_gpio_fid_to_pid_map_table[HFM_MAX_FUNC_CODE]=
+{
+	HFM_NOPIN,	//HFGPIO_F_JTAG_TCK
+	HFM_NOPIN,	//HFGPIO_F_JTAG_TDO
+	HFM_NOPIN,	//HFGPIO_F_JTAG_TDI
+	HFM_NOPIN,	//HFGPIO_F_JTAG_TMS
+	HFM_NOPIN,		//HFGPIO_F_USBDP
+	HFM_NOPIN,		//HFGPIO_F_USBDM
+	HFM_GPIO20,	//HFGPIO_F_UART0_TX
+	HFM_NOPIN,	//HFGPIO_F_UART0_RTS
+	HFM_GPIO19,	//HFGPIO_F_UART0_RX
+	HFM_NOPIN,	//HFGPIO_F_UART0_CTS
+
+	HFM_NOPIN,	//HFGPIO_F_SPI_MISO
+	HFM_NOPIN,	//HFGPIO_F_SPI_CLK
+	HFM_NOPIN,	//HFGPIO_F_SPI_CS
+	HFM_NOPIN,	//HFGPIO_F_SPI_MOSI
+
+	HFM_GPIO5,	//HFGPIO_F_UART1_TX,
+	HFM_NOPIN,	//HFGPIO_F_UART1_RTS,
+	HFM_GPIO6,	//HFGPIO_F_UART1_RX,
+	HFM_NOPIN,	//HFGPIO_F_UART1_CTS,
+
+	HFM_GPIO15,	//HFGPIO_F_NLINK
+	HFM_GPIO18,	//HFGPIO_F_NREADY
+	HFM_GPIO2,	//HFGPIO_F_NRELOAD
+	HFM_NOPIN,		//HFGPIO_F_SLEEP_RQ
+	HFM_NOPIN,		//HFGPIO_F_SLEEP_ON
+
+	HFM_NOPIN,		//HFGPIO_F_WPS
+	HFM_NOPIN,		//HFGPIO_F_RESERVE1
+	HFM_NOPIN,		//HFGPIO_F_RESERVE2
+	HFM_NOPIN,		//HFGPIO_F_RESERVE3
+	HFM_NOPIN,		//HFGPIO_F_RESERVE4
+	HFM_NOPIN,		//HFGPIO_F_RESERVE5
+
+	HFM_NOPIN,	//HFGPIO_F_USER_DEFINE
+};
+
+
+#elif  (__HF_MODULE_ID__==HFM_LPT220)
+
+const int hf_gpio_fid_to_pid_map_table[HFM_MAX_FUNC_CODE]=
+{
+	HFM_NOPIN,	//HFGPIO_F_JTAG_TCK
+	HFM_NOPIN,	//HFGPIO_F_JTAG_TDO
+	HFM_NOPIN,	//HFGPIO_F_JTAG_TDI
+	HFM_NOPIN,	//HFGPIO_F_JTAG_TMS
+	HFM_NOPIN,		//HFGPIO_F_USBDP
+	HFM_NOPIN,		//HFGPIO_F_USBDM
+	HFM_GPIO20,	//HFGPIO_F_UART0_TX
+	HFM_NOPIN,	//HFGPIO_F_UART0_RTS
+	HFM_GPIO19,	//HFGPIO_F_UART0_RX
+	HFM_NOPIN,	//HFGPIO_F_UART0_CTS
+
+	HFM_NOPIN,	//HFGPIO_F_SPI_MISO
+	HFM_NOPIN,	//HFGPIO_F_SPI_CLK
+	HFM_NOPIN,	//HFGPIO_F_SPI_CS
+	HFM_NOPIN,	//HFGPIO_F_SPI_MOSI
+
+	HFM_GPIO5,	//HFGPIO_F_UART1_TX,
+	HFM_NOPIN,	//HFGPIO_F_UART1_RTS,
+	HFM_GPIO6,	//HFGPIO_F_UART1_RX,
+	HFM_NOPIN,	//HFGPIO_F_UART1_CTS,
+
+	HFM_GPIO15,	//HFGPIO_F_NLINK
+	HFM_GPIO3,	//HFGPIO_F_NREADY
+	HFM_GPIO2,	//HFGPIO_F_NRELOAD
+	HFM_NOPIN,		//HFGPIO_F_SLEEP_RQ
+	HFM_NOPIN,		//HFGPIO_F_SLEEP_ON
+
+	HFM_NOPIN,		//HFGPIO_F_WPS
+	HFM_NOPIN,		//HFGPIO_F_RESERVE1
+	HFM_NOPIN,		//HFGPIO_F_RESERVE2
+	HFM_NOPIN,		//HFGPIO_F_RESERVE3
+	HFM_NOPIN,		//HFGPIO_F_RESERVE4
+	HFM_NOPIN,		//HFGPIO_F_RESERVE5
+
+	HFM_NOPIN,	//HFGPIO_F_USER_DEFINE
+};
+
+
+#elif (__HF_MODULE_ID__ == HFM_LPT120)
+
+const int hf_gpio_fid_to_pid_map_table[HFM_MAX_FUNC_CODE]=
+{
+	HFM_NOPIN,	//HFGPIO_F_JTAG_TCK
+	HFM_NOPIN,	//HFGPIO_F_JTAG_TDO
+	HFM_NOPIN,	//HFGPIO_F_JTAG_TDI
+	HFM_NOPIN,	//HFGPIO_F_JTAG_TMS
+	HFM_NOPIN,		//HFGPIO_F_USBDP
+	HFM_NOPIN,		//HFGPIO_F_USBDM
+	HFM_GPIO20,	//HFGPIO_F_UART0_TX
+	HFM_NOPIN,	//HFGPIO_F_UART0_RTS
+	HFM_GPIO19,	//HFGPIO_F_UART0_RX
+	HFM_NOPIN,	//HFGPIO_F_UART0_CTS
+
+	HFM_NOPIN,	//HFGPIO_F_SPI_MISO
+	HFM_NOPIN,	//HFGPIO_F_SPI_CLK
+	HFM_NOPIN,	//HFGPIO_F_SPI_CS
+	HFM_NOPIN,	//HFGPIO_F_SPI_MOSI
+
+	HFM_GPIO5,	//HFGPIO_F_UART1_TX,
+	HFM_NOPIN,	//HFGPIO_F_UART1_RTS,
+	HFM_GPIO6,	//HFGPIO_F_UART1_RX,
+	HFM_NOPIN,	//HFGPIO_F_UART1_CTS,
+
+	HFM_GPIO15,	//HFGPIO_F_NLINK
+	HFM_GPIO3,	//HFGPIO_F_NREADY
+	HFM_GPIO2,	//HFGPIO_F_NRELOAD
+	HFM_NOPIN,		//HFGPIO_F_SLEEP_RQ
+	HFM_NOPIN,		//HFGPIO_F_SLEEP_ON
+
+	HFM_NOPIN,		//HFGPIO_F_WPS
+	HFM_NOPIN,		//HFGPIO_F_RESERVE1
+	HFM_NOPIN,		//HFGPIO_F_RESERVE2
+	HFM_NOPIN,		//HFGPIO_F_RESERVE3
+	HFM_NOPIN,		//HFGPIO_F_RESERVE4
+	HFM_NOPIN,		//HFGPIO_F_RESERVE5
+
+	HFM_GPIO8,	//HFGPIO_F_USER_DEFINE，
+};
+
+
+#elif (__HF_MODULE_ID__ == HFM_SIP120)
+
+const int hf_gpio_fid_to_pid_map_table[HFM_MAX_FUNC_CODE]=
+{
+	HFM_NOPIN,	//HFGPIO_F_JTAG_TCK
+	HFM_NOPIN,	//HFGPIO_F_JTAG_TDO
+	HFM_NOPIN,	//HFGPIO_F_JTAG_TDI
+	HFM_NOPIN,	//HFGPIO_F_JTAG_TMS
+	HFM_NOPIN,		//HFGPIO_F_USBDP
+	HFM_NOPIN,		//HFGPIO_F_USBDM
+	HFM_GPIO20,	//HFGPIO_F_UART0_TX
+	HFM_NOPIN,	//HFGPIO_F_UART0_RTS
+	HFM_GPIO19,	//HFGPIO_F_UART0_RX
+	HFM_NOPIN,	//HFGPIO_F_UART0_CTS
+
+	HFM_NOPIN,	//HFGPIO_F_SPI_MISO
+	HFM_NOPIN,	//HFGPIO_F_SPI_CLK
+	HFM_NOPIN,	//HFGPIO_F_SPI_CS
+	HFM_NOPIN,	//HFGPIO_F_SPI_MOSI
+
+	HFM_GPIO1,	//HFGPIO_F_UART1_TX,
+	HFM_NOPIN,	//HFGPIO_F_UART1_RTS,
+	HFM_GPIO6,	//HFGPIO_F_UART1_RX,
+	HFM_NOPIN,	//HFGPIO_F_UART1_CTS,
+
+	HFM_GPIO15,	//HFGPIO_F_NLINK
+	HFM_GPIO3,	//HFGPIO_F_NREADY
+	HFM_GPIO2,	//HFGPIO_F_NRELOAD
+	HFM_NOPIN,		//HFGPIO_F_SLEEP_RQ
+	HFM_NOPIN,		//HFGPIO_F_SLEEP_ON
+
+	HFM_NOPIN,		//HFGPIO_F_WPS
+	HFM_NOPIN,		//HFGPIO_F_RESERVE1
+	HFM_NOPIN,		//HFGPIO_F_RESERVE2
+	HFM_NOPIN,		//HFGPIO_F_RESERVE3
+	HFM_NOPIN,		//HFGPIO_F_RESERVE4
+	HFM_NOPIN,		//HFGPIO_F_RESERVE5
+
+	HFM_NOPIN,	//HFGPIO_F_USER_DEFINE
+};
+
+
+#elif (__HF_MODULE_ID__ == HFM_LPT120G)
+
+const int hf_gpio_fid_to_pid_map_table[HFM_MAX_FUNC_CODE]=
+{
+	HFM_NOPIN,	//HFGPIO_F_JTAG_TCK
+	HFM_NOPIN,	//HFGPIO_F_JTAG_TDO
+	HFM_NOPIN,	//HFGPIO_F_JTAG_TDI
+	HFM_NOPIN,	//HFGPIO_F_JTAG_TMS
+	HFM_NOPIN,		//HFGPIO_F_USBDP
+	HFM_NOPIN,		//HFGPIO_F_USBDM
+	HFM_GPIO20,	//HFGPIO_F_UART0_TX
+	HFM_NOPIN,	//HFGPIO_F_UART0_RTS
+	HFM_GPIO19,	//HFGPIO_F_UART0_RX
+	HFM_NOPIN,	//HFGPIO_F_UART0_CTS
+
+	HFM_NOPIN,	//HFGPIO_F_SPI_MISO
+	HFM_NOPIN,	//HFGPIO_F_SPI_CLK
+	HFM_NOPIN,	//HFGPIO_F_SPI_CS
+	HFM_NOPIN,	//HFGPIO_F_SPI_MOSI
+
+	HFM_GPIO5,	//HFGPIO_F_UART1_TX,
+	HFM_NOPIN,	//HFGPIO_F_UART1_RTS,
+	HFM_GPIO6,	//HFGPIO_F_UART1_RX,
+	HFM_NOPIN,	//HFGPIO_F_UART1_CTS,
+
+	HFM_GPIO15,	//HFGPIO_F_NLINK
+	HFM_GPIO3,	//HFGPIO_F_NREADY
+	HFM_GPIO2,	//HFGPIO_F_NRELOAD
+	HFM_NOPIN,		//HFGPIO_F_SLEEP_RQ
+	HFM_NOPIN,		//HFGPIO_F_SLEEP_ON
+
+	HFM_NOPIN,		//HFGPIO_F_WPS
+	HFM_NOPIN,		//HFGPIO_F_RESERVE1
+	HFM_NOPIN,		//HFGPIO_F_RESERVE2
+	HFM_NOPIN,		//HFGPIO_F_RESERVE3
+	HFM_NOPIN,		//HFGPIO_F_RESERVE4
+	HFM_NOPIN,		//HFGPIO_F_RESERVE5
+
+	HFM_NOPIN,	//HFGPIO_F_USER_DEFINE
+};
+#else
+#error "Please define __HF_MODULE_ID__!!!"
+#endif
+
+
+const hfat_cmd_t user_define_at_cmds_table[]=
+{
+	{NULL,NULL,NULL,NULL}
+};
+
+uint8_t * get_user_default_rf_table(void)
+{
+	return NULL;
+}
+
+
+static char app_device_id[16] = {0};
+int HSF_API hfnet_get_module_mac(char *mac)
+{
+	char *words[3];
+	char rsp[64]={0};
+	
+	hfat_send_cmd("AT+WSMAC\r\n",sizeof("AT+WSMAC\r\n"),rsp,64);
+	if(hfat_get_words(rsp,words, 2) > 0){
+		if((rsp[0]=='+')&&(rsp[1]=='o')&&(rsp[2]=='k')){
+			strcpy(mac,words[1]);		
+		}
+	}
+	return 0;
+}
+ 
+
+int USER_FUNC  app_main(void)
+{
+	u_printf("\n%s Start %s %s\n\n",g_hfm_name[__HF_MODULE_ID__],__DATE__,__TIME__);
+
+	//For use of HFUpdate mass production tools, this code need to be kept.
+	if(hfupdate_auto_upgrade_is_running())
+		return 0;
+
+	//For use of Smarltink V7, this code need to be kept.
+	if(hfsmtlk_is_start())
+		return 0;
+
+	//For use of Wi-Fi Config Tools APP, this code need to be kept.
+	if(hfnet_start_assis(ASSIS_PORT) != HF_SUCCESS)
+	{
+		HF_Debug(DEBUG_WARN,"start httpd fail\n");
+	}
+
+	//Set Bluetooth Uart Baud to 9600
+	
+	Set_Uart_Port();	//设置串口
+	Get_Mac_Addr();		//获取MAC地址
+
+	//If need to use our default throughput function, define SUPPORT_UART_THROUGH.
+#ifdef SUPPORT_UART_THROUGH
+	//AT+NETP socket.
+	if(hfnet_start_socketa(0,NULL) != HF_SUCCESS)
+	{
+		HF_Debug(DEBUG_WARN,"start socketa fail\n");
+	}
+	//AT+SOCKB socket.
+	if(hfnet_start_socketb(1,NULL) != HF_SUCCESS)
+	{
+		HF_Debug(DEBUG_WARN,"start socketb fail\n");
+	}
+	//UART process function.
+	if(hfnet_start_uart_ex(0,NULL,4096) != HF_SUCCESS)
+	{
+		HF_Debug(DEBUG_WARN,"start uart fail!\n");
+	}
+	/*Web Server Function. It will need about 20KB RAM resources. Comment it if don't need it.
+	if(hfnet_start_httpd(1)!=HF_SUCCESS)
+	{
+		HF_Debug(DEBUG_WARN,"start httpd fail!\n");
+	}*/
+#else
+	//UART process function.
+	if(hfnet_start_uart_ex(0,uart0_recv_callback,1024) != HF_SUCCESS)
+	{
+		HF_Debug(DEBUG_WARN,"start uart fail!\n");
+	}
+#endif
+	if(hfnet_start_uart1_ex(0,uart1_recv_callback,1024) != HF_SUCCESS)
+	{
+		HF_Debug(DEBUG_WARN,"start uart fail!\n");
+	}
+	
+	Get_MCUFW_Ver();	
+    extern void user_init(void);
+
+    user_init();
+	//蒋工接手时没有下面的代码不能进行配网，还是编译不过，忘记了
+	hfnet_get_module_mac(app_device_id);	//获取设备的mac
+    if(hfnet_start_airlink(DEVICE_TYPE, app_device_id) != HF_SUCCESS)
+	{
+		HF_Debug(DEBUG_WARN,"start airlink fail!\n");
+	}
+
+	return 1;	
+}
+
+
